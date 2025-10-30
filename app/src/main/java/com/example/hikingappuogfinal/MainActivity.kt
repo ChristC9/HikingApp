@@ -49,16 +49,15 @@ class MainActivity : ComponentActivity() {
                         route = "form?editId={editId}",
                         arguments = listOf(
                             navArgument("editId") {
-                                type = NavType.LongType
+                                type = NavType.StringType
                                 nullable = true
-                                defaultValue = null
                             }
                         )
                     ) {
                         val vm: HikeFormViewModel = viewModel(factory = factory)
                         HikeFormScreen( // or HikeFormScreenCompact if that’s what you kept
                             vm = vm,
-                            editId = it.arguments?.getLong("editId"),
+                            editId = it.arguments?.getString("editId")?.toLongOrNull(),
                             onDone = { id ->
                                 nav.navigate("detail/$id") {
                                     popUpTo("list") { inclusive = false }
