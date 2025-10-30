@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- App theme that inherits Material3 DayNight and removes the action bar -->
+    <style name="Theme.MHike" parent="Theme.Material3.DayNight.NoActionBar">
+        <!-- Optional system bar tweaks -->
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+    </style>
+</resources>
