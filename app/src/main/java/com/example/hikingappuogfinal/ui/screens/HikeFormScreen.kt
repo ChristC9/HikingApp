@@ -2,14 +2,31 @@
 
 package com.example.hikingappuogfinal.ui.screens
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.material3.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDialog
+import androidx.compose.material3.Divider
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.example.hikingappuogfinal.data.model.Difficulty
 import com.example.hikingappuogfinal.ui.HikeFormViewModel
+import kotlinx.datetime.Instant
 import kotlinx.datetime.LocalDate
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.atStartOfDayIn
+import kotlinx.datetime.toLocalDateTime
 
 @Composable
 fun HikeFormScreen(
@@ -58,17 +75,45 @@ fun HikeFormScreenCompact(
                 )
                 if (err("location") != null) Text(err("location")!!, color = MaterialTheme.colorScheme.error)
 
+                var showDatePicker by remember { mutableStateOf(false) }
                 OutlinedTextField(
                     value = form.date?.toString().orEmpty(),
-                    onValueChange = { s ->
-                        vm.update { f ->
-                            f.copy(date = s.takeIf { it.matches(Regex("""\d{4}-\d{2}-\d{2}""")) }?.let(LocalDate::parse))
-                        }
-                    },
-                    label = { Text("Date (yyyy-MM-dd)*") },
+                    onValueChange = {},
+                    label = { Text("Date*") },
                     isError = err("date") != null,
-                    singleLine = true
+                    readOnly = true,
+                    singleLine = true,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { showDatePicker = true }
                 )
+                if (err("date") != null) Text(err("date")!!, color = MaterialTheme.colorScheme.error)
+                if (showDatePicker) {
+                    val state = rememberDatePickerState(
+                        initialSelectedDateMillis = form.date?.toEpochMillis()
+                    )
+                    DatePickerDialog(
+                        onDismissRequest = { showDatePicker = false },
+                        confirmButton = {
+                            TextButton(
+                                onClick = {
+                                    val selectedDate = state.selectedDateMillis?.toLocalDate()
+                                    if (selectedDate != null) {
+                                        vm.update { f -> f.copy(date = selectedDate) }
+                                    }
+                                    showDatePicker = false
+                                }
+                            ) {
+                                Text("OK")
+                            }
+                        },
+                        dismissButton = {
+                            TextButton(onClick = { showDatePicker = false }) { Text("Cancel") }
+                        }
+                    ) {
+                        DatePicker(state = state)
+                    }
+                }
 
                 Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                     FilterChip(
@@ -155,3 +200,9 @@ fun HikeFormScreenCompact(
         }
     }
 }
+
+private fun LocalDate.toEpochMillis(): Long =
+    this.atStartOfDayIn(TimeZone.currentSystemDefault()).toEpochMilliseconds()
+
+private fun Long.toLocalDate(): LocalDate =
+    Instant.fromEpochMilliseconds(this).toLocalDateTime(TimeZone.currentSystemDefault()).date
